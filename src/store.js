@@ -22,7 +22,18 @@ export async function start(callback){state.onChange=callback;
  const a=await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js');
  const f=await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js');sdk={a,f};
  const instance=app.initializeApp(FIREBASE_CONFIG,'redline-independent');auth=a.getAuth(instance);db=f.getFirestore(instance);
- await a.setPersistence(auth,a.browserLocalPersistence);
+ // Alcuni browser mobili (Safari iOS, browser Android con blocco memoria)
+ // non consentono la persistenza locale: non interrompere l'avvio dell'app.
+ try { await a.setPersistence(auth,a.browserLocalPersistence); }
+ catch (e) {
+   console.warn('REDLINE: persistenza locale non disponibile',e?.code||e);
+   try { await a.setPersistence(auth,a.browserSessionPersistence); }
+   catch (e2) {
+     console.warn('REDLINE: persistenza di sessione non disponibile',e2?.code||e2);
+     try { await a.setPersistence(auth,a.inMemoryPersistence); }
+     catch (e3) { console.warn('REDLINE: mantengo persistenza predefinita',e3?.code||e3); }
+   }
+ }
  a.onAuthStateChanged(auth,async user=>{
    detach();state.user=user;state.profile=null;state.vehicles=[];state.documents={};state.maintenance={};state.expenses={};state.trash={};state.users=[];state.loading=false;notify();
    if(!user)return;
