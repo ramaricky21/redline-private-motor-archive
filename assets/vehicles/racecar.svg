@@ -1,0 +1,36 @@
+<svg viewBox="0 0 1000 440" role="img" aria-label="Illustrazione concept di un'auto sportiva" xmlns="http://www.w3.org/2000/svg"><defs>
+<linearGradient id="body-hero" x1="0" y1=".0" x2=".25" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".25" stop-color="#c4c9ce"/><stop offset=".56" stop-color="#747b86"/><stop offset=".78" stop-color="#c4c9ce"/><stop offset="1" stop-color="#303943"/></linearGradient>
+<linearGradient id="window-hero" x1=".1" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#809ba9"/><stop offset=".37" stop-color="#273745"/><stop offset=".85" stop-color="#090f16"/><stop offset="1" stop-color="#06090d"/></linearGradient>
+<radialGradient id="tire-hero"><stop offset="0" stop-color="#0c0e10"/><stop offset=".55" stop-color="#141619"/><stop offset=".82" stop-color="#050608"/><stop offset=".96" stop-color="#35393f"/><stop offset="1" stop-color="#080a0c"/></radialGradient>
+<radialGradient id="shadow-hero"><stop stop-color="#fa4933" stop-opacity=".35"/><stop offset=".7" stop-color="#901714" stop-opacity=".09"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<filter id="blur-hero" x="-50%" width="200%"><feGaussianBlur stdDeviation="18"/></filter></defs>
+<ellipse cx="512" cy="377" rx="470" ry="62" fill="url(#shadow-hero)"/>
+<ellipse cx="490" cy="385" rx="410" ry="14" fill="#050607" opacity=".86" filter="url(#blur-hero)"/>
+<!-- wing --> <path d="M782 155 L880 145 L900 150 L902 166 L784 174 Z" fill="#151a1e" stroke="#b1b9c0" stroke-width="2"/><path d="M809 171 L817 239 M864 161 L867 243" stroke="#1a222c" stroke-width="9"/>
+<!-- main silhouette -->
+<path d="M65 281 L117 274 L204 250 L302 234 L360 158 Q385 121 429 116 Q529 101 617 124 Q671 132 706 167 L781 224 Q839 236 875 252 L930 275 Q949 287 953 304 L958 343 L940 359 L887 366 Q878 284 797 284 Q712 282 700 368 L322 368 Q308 288 234 287 Q148 283 140 365 L87 358 L52 333 Z" fill="url(#body-hero)" stroke="#111820" stroke-width="6"/>
+<!-- windshield and side windows -->
+<path d="M355 223 L389 164 Q406 133 439 129 L612 132 Q658 139 689 168 L753 226 Z" fill="#121b24" stroke="#424d54" stroke-width="3"/>
+<path d="M371 215 L399 166 Q412 145 439 143 L511 139 L510 217 Z" fill="url(#window-hero)"/>
+<path d="M529 140 L611 145 Q645 149 676 177 L726 216 L528 217 Z" fill="url(#window-hero)"/>
+<path d="M515 138 L528 140 L528 225 L510 226 Z" fill="#0e141b"/>
+<!-- roof highlight --> <path d="M391 150 Q413 121 452 120 L598 127" stroke="#fff" stroke-opacity=".75" stroke-width="6" fill="none" stroke-linecap="round"/>
+<!-- body accents -->
+<path d="M95 293 L310 256 L747 251 L918 292" fill="none" stroke="#fff" stroke-opacity=".52" stroke-width="3"/>
+<path d="M347 275 L653 275 L713 314 L336 316 Z" fill="#111921" opacity=".18"/>
+<path d="M348 306 L686 303" stroke="#f7f9fb" stroke-opacity=".56" stroke-width="2"/>
+<path d="M359 237 L361 310 M693 240 L698 306" stroke="#172029" stroke-opacity=".48" stroke-width="3"/>
+<path d="M554 242 L602 241" stroke="#e5ebef" stroke-width="5" stroke-linecap="round"/>
+<!-- track decal --> <path d="M348 330 L687 331" stroke="#f13f33" stroke-width="7" opacity=".95"/>
+<path d="M92 324 L137 323 M909 333 L951 328" stroke="#090c0f" stroke-width="11"/>
+<!-- headlights and taillights -->
+<path d="M60 286 L133 281 L153 291 L91 313 L57 309 Z" fill="#ecf8ff" stroke="#f4ffff" stroke-width="3"/>
+<path d="M906 277 L937 285 L946 309 L894 303 Z" fill="#f73d32" stroke="#ff8f80" stroke-width="2"/>
+<!-- arches -->
+<path d="M138 351 Q146 267 234 267 Q319 268 327 354 L325 368 L137 368 Z" fill="#11151a"/>
+<path d="M693 353 Q704 264 796 266 Q886 267 892 355 L887 369 L692 369 Z" fill="#11151a"/>
+<!-- wheels -->
+<g transform="translate(234 350)"><circle r="85" fill="#101319"/><circle r="77" fill="url(#tire-hero)"/><circle r="62" fill="#5b6066"/><circle r="58" fill="#11151a"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(0)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(45)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(90)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(135)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(180)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(225)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(270)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(315)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><circle r="21" fill="#dc4034"/><circle r="14" fill="#c0c8cd"/><circle r="7" fill="#20252a"/><circle r="69" fill="none" stroke="#7e8387" stroke-width="3" opacity=".55"/></g><g transform="translate(796 350)"><circle r="85" fill="#101319"/><circle r="77" fill="url(#tire-hero)"/><circle r="62" fill="#5b6066"/><circle r="58" fill="#11151a"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(0)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(45)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(90)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(135)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(180)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(225)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(270)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><path d="M-9 -46 L9 -46 L16 -16 L5 -7 L-5 -7 L-16 -16 Z" transform="rotate(315)" fill="#b0b8c0" stroke="#090e14" stroke-width="3"/><circle r="21" fill="#dc4034"/><circle r="14" fill="#c0c8cd"/><circle r="7" fill="#20252a"/><circle r="69" fill="none" stroke="#7e8387" stroke-width="3" opacity=".55"/></g>
+<!-- mirror --> <path d="M656 218 L691 206 Q702 205 708 218 L691 234 L653 230" fill="#1f2932" stroke="#707984" stroke-width="3"/>
+<path d="M190 260 Q294 240 326 230" stroke="#eee" stroke-opacity=".5" stroke-width="4" fill="none"/>
+</svg>
