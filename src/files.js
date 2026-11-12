@@ -23,11 +23,50 @@ export async function deleteFile(vid,scope,recordId,attachment){if(!attachment?.
  const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'Impossibile eliminare il vecchio file');return j;
 }
 setDisposer(deleteFile);
-export async function compressImage(file,maxSide=1800,quality=.79){if(!file.type.startsWith('image/')||file.type==='image/heic'||file.type==='image/heif')return file;
- const bmp=await createImageBitmap(file).catch(()=>null);if(!bmp)return file;
- const scale=Math.min(1,maxSide/Math.max(bmp.width,bmp.height)),w=Math.round(bmp.width*scale),h=Math.round(bmp.height*scale);
- const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(bmp,0,0,w,h);bmp.close?.();
- const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
- if(!blob||blob.size>=file.size)return file;return new File([blob],file.name.replace(/\.[^.]+$/, '')+'.webp',{type:'image/webp'});
+// La conversione avviene sul dispositivo; il cloud riceve solo il file raster effettivamente prodotto.
+async function decodedImage(file){
+ if(typeof createImageBitmap==='function'){
+  try{const bitmap=await createImageBitmap(file);return {source:bitmap,width:bitmap.width,height:bitmap.height,close:()=>bitmap.close?.()};}catch{}
+ }
+ const objectUrl=URL.createObjectURL(file),img=new Image();
+ try{
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('Formato immagine non leggibile dal browser'));img.src=objectUrl;});
+  return {source:img,width:img.naturalWidth,height:img.naturalHeight,close:()=>URL.revokeObjectURL(objectUrl)};
+ }catch(e){URL.revokeObjectURL(objectUrl);throw e;}
+}
+async function rasterBlob(file,maxSide,mime,quality){
+ const image=await decodedImage(file);
+ try{
+  if(!image.width||!image.height)throw Error('Immagine non valida');
+  const scale=Math.min(1,maxSide/Math.max(image.width,image.height));
+  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
+  const context=canvas.getContext('2d');if(!context)throw Error('Impossibile elaborare la fotografia');
+  // Il JPG non supporta trasparenza: utilizzare uno sfondo bianco.
+  if(mime==='image/jpeg'){context.fillStyle='#ffffff';context.fillRect(0,0,canvas.width,canvas.height);}
+  context.drawImage(image.source,0,0,canvas.width,canvas.height);
+  return await new Promise(resolve=>canvas.toBlob(resolve,mime,quality));
+ }finally{image.close();}
+}
+export async function prepareVehiclePhoto(file){
+ if(file.size>25*1048576)throw Error('La fotografia supera 25 MB: scegline una più piccola');
+ let blob;
+ try{blob=await rasterBlob(file,1800,'image/jpeg',.84);}
+ catch(e){throw Error('Impossibile leggere questa foto. Usa JPG, PNG, WebP, GIF, AVIF, BMP o HEIC se supportato dal dispositivo.');}
+ if(!blob||blob.type!=='image/jpeg')throw Error('Conversione JPG non supportata dal dispositivo');
+ // Conferma i magic bytes, così il server non riceve mai un Content-Type incoerente.
+ const header=new Uint8Array(await blob.slice(0,3).arrayBuffer());
+ if(header[0]!==0xff||header[1]!==0xd8||header[2]!==0xff)throw Error('Conversione JPG non valida');
+ if(blob.size>MAX_FILE_MB*1048576)throw Error(`La foto supera ${MAX_FILE_MB} MB anche dopo la conversione`);
+ const base=(file.name||'foto_auto').replace(/\.[^.]+$/,'').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,70)||'foto_auto';
+ return new File([blob],base+'.jpg',{type:'image/jpeg'});
+}
+export async function compressImage(file,maxSide=1800,quality=.79){
+ if(!file.type.startsWith('image/')||file.type==='image/heic'||file.type==='image/heif')return file;
+ let blob;try{blob=await rasterBlob(file,maxSide,'image/webp',quality);}catch{return file;}
+ // Alcuni browser restituiscono PNG anche quando viene chiesto WebP: non falsare MIME/estensione.
+ if(!blob||blob.size>=file.size)return file;
+ const extensions={'image/webp':'.webp','image/png':'.png','image/jpeg':'.jpg'};
+ const ext=extensions[blob.type];if(!ext)return file;
+ return new File([blob],file.name.replace(/\.[^.]+$/,'')+ext,{type:blob.type});
 }
 export async function downloadAttachment(vid,scope,recordId,att){const blob=await fetchFile(vid,scope,recordId,att);const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=att.originalName||'documento';a.click();setTimeout(()=>URL.revokeObjectURL(u),30000);}
