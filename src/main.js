@@ -4,6 +4,7 @@ import {start,state,isDemo,signIn,register,resetPassword,verifyAgain,refreshUser
 import {uploadFile,fetchFile,downloadAttachment,compressImage,prepareVehiclePhoto,deleteFile} from './files.js';
 const root=document.getElementById('app'),toastBox=document.getElementById('toast');
 let page='dashboard',selectedVehicle=null,detailTab='anagrafica',expenseFilter='all',docFilter='all',bellOpen=false,loginMode='login',activeModal=null,searchFiles=[],photoPicked=null,working=false,thumbCache=new Map(),fileUrls=[];
+let photoSearchId=0;
 let mobileMenuOpen=false;
 
 const carName=v=>`${v?.brand||''} ${v?.model||''}`.trim()||'Automobile';
@@ -117,7 +118,7 @@ function vehicleOptions(value){return state.vehicles.map(v=>`<option value="${es
 function vehicleField(value){return `<div class="rl-field"><label>AUTOMOBILE</label><select class="rl-select" name="vehicleId" required>${vehicleOptions(value||selectedVehicle||state.vehicles[0]?.id)}</select></div>`;}
 function fileZone(existing=null){return `<div class="rl-field full"><label>${existing?.fileId?'Sostituisci l’allegato (qualsiasi documento)':'Allega PDF o fotografia (facoltativo)'}</label><div class="rl-filezone"><div class="rl-red">${mIcon('upload',24)}</div><input name="attachment" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,application/pdf,image/*"/><div class="rl-small">PDF, JPG, PNG, WebP o HEIC · massimo ${MAX_FILE_MB} MB per file</div>${existing?.fileId?`<div class="rl-attach-warn">Allegato attuale: ${esc(existing.originalName||'documento')}. Se scegli un nuovo file, il vecchio verrà eliminato dall’archivio <b>dopo</b> il salvataggio riuscito.</div>`:''}<div id="extract-status" class="rl-small"></div></div></div>`;}
 function openModal(html,wide=false){closeModal();const div=document.createElement('div');div.className='rl-modal-back';div.id='redline-modal';div.innerHTML=`<div class="rl-modal ${wide?'wide':''}" role="dialog" aria-modal="true"><button class="rl-modal-close" data-act="close-modal" title="Chiudi">${mIcon('close')}</button>${html}</div>`;document.body.appendChild(div);div.addEventListener('click',e=>{if(e.target===div)closeModal()});activeModal=div;}
-function closeModal(){activeModal?.remove();activeModal=null;photoPicked=null;searchFiles=[];}
+function closeModal(){photoSearchId++;activeModal?.remove();activeModal=null;photoPicked=null;searchFiles=[];}
 function openVehicleForm(id){if(!canEdit())return;const v=carById(id)||{};const brand=v.brand||'';
  openModal(`<div class="rl-eyebrow">VEHICLE REGISTRY / NUOVA SCHEDA</div><h2>${id?'MODIFICA AUTOMOBILE':'INSERISCI AUTOMOBILE'}</h2><p class="intro">Crea un fascicolo completo con dati identificativi, scadenze e fotografia del veicolo.</p><form id="vehicle-form" data-id="${esc(id||'')}"><div class="rl-form-grid">
  ${field('Marca','brand','text',brand,'Volkswagen',true)}${field('Modello','model','text',v.model,'Golf 8',true)}${field('Versione / Allestimento','trim','text',v.trim,'2.0 TDI R-Line')}${field('Targa','plate','text',v.plate,'AB123CD',true)}
@@ -243,6 +244,26 @@ async function archiveZip(){if(isDemo)throw Error('In modalità demo non sono pr
  for(const e of entries){const blob=await fetchFile(vid,e.scope,e.rid,e.attachment);zip.file(`allegati/${String(++i).padStart(3,'0')}_${String(e.attachment.originalName||'allegato').replace(/[^a-zA-Z0-9_.-]/g,'_')}`,blob);toast(`Backup: ${i}/${entries.length} allegati letti`);}
  const output=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:4}});saveBlob(output,`REDLINE_${(v.plate||vid).replace(/[^A-Za-z0-9]/g,'')}_${today()}.zip`);toast('Backup ZIP creato. Conservalo in un luogo sicuro.');
 }
+// Cerca prima le parole esatte e, solo se i risultati sono pochi,
+// amplia la ricerca: Wikimedia Commons indicizza spesso i modelli con nomi più brevi.
+function photoQueries(term,vehicle){
+ const options=[],seen=new Set();
+ const add=value=>{const query=String(value||'').trim().replace(/\s+/g,' ');const key=query.toLocaleLowerCase();if(query&&query.length>=2&&!seen.has(key)){seen.add(key);options.push(query);}};
+ const normalized=term.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ add(term);
+ if(normalized!==term)add(normalized);
+ const shortened=normalized.replace(/\b(senza|without|con|with)\b.*$/i,'').trim();
+ add(shortened);
+ const words=shortened.split(/\s+/).filter(Boolean);
+ if(words.length>4)add(words.slice(0,4).join(' '));
+ if(words.length>3)add(words.slice(0,3).join(' '));
+ if(words.length>2)add(words.slice(0,2).join(' '));
+ // Solo se marca e modello sono davvero contenuti nella ricerca scelta dall'utente.
+ const brand=String(vehicle.brand||'').trim(),model=String(vehicle.model||'').trim();
+ const norm=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase();
+ if(brand&&model&&norm(term).includes(norm(brand))&&norm(term).includes(norm(model)))add(`${brand} ${model}`);
+ return options.slice(0,6);
+}
 async function searchWebPhotos(){
  const modal=activeModal,form=modal?.querySelector('#vehicle-form'),where=modal?.querySelector('#web-photo-results');
  if(!form||!where)return;
@@ -250,18 +271,35 @@ async function searchWebPhotos(){
  const manual=String(form.querySelector('#photo-search-query')?.value||'').trim();
  const term=(manual||[data.brand,data.model,data.trim,data.year].filter(Boolean).join(' ')).slice(0,150);
  if(!term)throw Error('Inserisci marca e modello oppure scrivi cosa vuoi cercare nel campo della foto.');
+ const searchId=++photoSearchId;
+ searchFiles=[];
  where.innerHTML='<p class="rl-small">Ricerca immagini su Wikimedia Commons…</p>';
- const url=new URL('https://commons.wikimedia.org/w/api.php');
- Object.entries({action:'query',generator:'search',gsrsearch:term,gsrnamespace:'6',gsrlimit:'15',prop:'imageinfo',iiprop:'url|mime|extmetadata',iiurlwidth:'1500',format:'json',origin:'*'}).forEach(([k,v])=>url.searchParams.set(k,v));
+ const wanted=9,maxResults=12,found=new Set();
+ let expanded=false;
  try{
-  const r=await fetch(url);if(!r.ok)throw Error('Ricerca immagini non disponibile');const j=await r.json();
-  if(modal!==activeModal)return;
-  searchFiles=Object.values(j.query?.pages||{}).map(x=>{
-   const info=x.imageinfo?.[0]||{};
-   return {url:info.thumburl||info.url,original:info.url,credit:info.extmetadata?.Artist?.value?.replace(/<[^>]+>/g,'').slice(0,130)||x.title,license:info.extmetadata?.LicenseShortName?.value||'Consulta la licenza originale',title:x.title};
-  }).filter(x=>x.url&&/^https:\/\/upload\.wikimedia\.org\//.test(x.url));
-  where.innerHTML=searchFiles.length?searchFiles.map((x,i)=>`<div class="rl-photo-result"><img src="${esc(x.url)}" alt="${esc(x.title)}" loading="lazy"/><button type="button" class="rl-btn secondary slim" data-act="choose-photo" data-idx="${i}">USA QUESTA FOTO</button><span class="rl-mini">${esc(x.license)}</span></div>`).join(''):'<p class="rl-small">Nessun risultato trovato. Prova parole più semplici oppure carica una foto dal dispositivo.</p>';
- }catch(e){if(modal===activeModal)where.innerHTML='<p class="rl-small">Ricerca non riuscita: controlla la connessione e riprova.</p>';throw e;}
+  for(const [pass,query] of photoQueries(term,data).entries()){
+   if(searchId!==photoSearchId||modal!==activeModal)return;
+   if(searchFiles.length>=wanted)break;
+   const url=new URL('https://commons.wikimedia.org/w/api.php');
+   Object.entries({action:'query',generator:'search',gsrsearch:query,gsrnamespace:'6',gsrlimit:'30',prop:'imageinfo',iiprop:'url|mime|extmetadata',iiurlwidth:'1500',format:'json',origin:'*'}).forEach(([k,v])=>url.searchParams.set(k,v));
+   const r=await fetch(url);if(!r.ok)throw Error('Ricerca immagini non disponibile');
+   const j=await r.json();
+   if(searchId!==photoSearchId||modal!==activeModal)return;
+   for(const x of Object.values(j.query?.pages||{})){
+    const info=x.imageinfo?.[0]||{},fullUrl=info.url,shownUrl=info.thumburl||fullUrl;
+    if(!shownUrl||!/^https:\/\/upload\.wikimedia\.org\//.test(shownUrl))continue;
+    if(!/^image\/(?:jpeg|png|webp|gif|bmp|avif|svg\+xml)$/i.test(info.mime||''))continue;
+    const key=String(fullUrl||x.title).toLocaleLowerCase();
+    if(found.has(key))continue;
+    found.add(key);
+    searchFiles.push({url:shownUrl,original:fullUrl||shownUrl,credit:info.extmetadata?.Artist?.value?.replace(/<[^>]+>/g,'').slice(0,130)||x.title,license:info.extmetadata?.LicenseShortName?.value||'Consulta la licenza originale',title:x.title});
+    if(searchFiles.length>=maxResults)break;
+   }
+   if(pass>0)expanded=true;
+  }
+  if(searchId!==photoSearchId||modal!==activeModal)return;
+  where.innerHTML=searchFiles.length?`<p class="rl-small rl-photo-result-count">${searchFiles.length} foto trovate${expanded?' (ricerca ampliata per offrirti più scelta)':''}. Scegli quella che preferisci.</p>`+searchFiles.map((x,i)=>`<div class="rl-photo-result"><img src="${esc(x.url)}" alt="${esc(x.title)}" loading="lazy"/><button type="button" class="rl-btn secondary slim" data-act="choose-photo" data-idx="${i}">USA QUESTA FOTO</button><span class="rl-mini">${esc(x.license)}</span></div>`).join(''):'<p class="rl-small">Nessun risultato trovato. Prova parole più semplici oppure carica una foto dal dispositivo.</p>';
+ }catch(e){if(searchId===photoSearchId&&modal===activeModal)where.innerHTML='<p class="rl-small">Ricerca non riuscita: controlla la connessione e riprova.</p>';throw e;}
 }
 async function choosePhoto(idx){
  const chosen=searchFiles[idx],modal=activeModal;
