@@ -319,3 +319,18 @@ body{background:#080b10}.content{background:transparent}.wrap{position:relative;
 }
 @media(prefers-reduced-motion:reduce){.side,.rl-mobile-backdrop{transition:none}}
 @media print{.rl-mobile-toggle,.rl-mobile-close,.rl-mobile-backdrop{display:none!important}}
+
+/* REDLINE V6 — solo correzioni mirate, nessuna nuova barra o modifica ai comandi. */
+/* Un'immagine reale resta ferma; l'illustrazione dell'auto continua ad animarsi. */
+.rl-hero-car img.real{animation:none!important;transform:none!important}
+.rl-photo-search-label{margin-top:15px;margin-bottom:7px!important}
+#photo-search-query{width:100%;min-width:0}
+@media(max-width:820px){
+  /* PWA iOS/Android: rispetta la barra di stato e i ritagli dello schermo. */
+  .wrap{padding-top:env(safe-area-inset-top,0px)}
+  .topbar{top:env(safe-area-inset-top,0px)!important}
+  .side{top:env(safe-area-inset-top,0px)!important;height:calc(100dvh - env(safe-area-inset-top,0px))!important}
+  .rl-mobile-backdrop{top:env(safe-area-inset-top,0px);height:calc(100dvh - env(safe-area-inset-top,0px))}
+  .rl-modal-back{padding-top:max(18px,env(safe-area-inset-top,0px));padding-bottom:max(18px,env(safe-area-inset-bottom,0px))}
+  .rl-modal{max-height:calc(100dvh - max(36px,env(safe-area-inset-top,0px) + env(safe-area-inset-bottom,0px)))}
+}
