@@ -334,3 +334,9 @@ body{background:#080b10}.content{background:transparent}.wrap{position:relative;
   .rl-modal-back{padding-top:max(18px,env(safe-area-inset-top,0px));padding-bottom:max(18px,env(safe-area-inset-bottom,0px))}
   .rl-modal{max-height:calc(100dvh - max(36px,env(safe-area-inset-top,0px) + env(safe-area-inset-bottom,0px)))}
 }
+
+/* REDLINE V7 — l'intestazione partecipa allo scorrimento della pagina,
+   senza cambiare aspetto e rispettando ancora lo spazio di sistema mobile. */
+.topbar{position:relative!important;top:auto!important}
+/* La griglia mostra più fotografie (3 colonne desktop, 2 mobile). */
+.rl-search-results .rl-photo-result-count{grid-column:1/-1;margin:0}

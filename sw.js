@@ -1,4 +1,4 @@
-const CACHE = 'redline-static-v6-photo-safearea';
+const CACHE = 'redline-static-v7-multiphoto-scrollheader';
 const ASSETS = ['/', '/index.html', '/styles.css', '/src/main.js', '/src/utils.js', '/src/store.js', '/src/files.js', '/config.js', '/manifest.webmanifest', '/assets/icons/redline-racing.svg', '/assets/icons/redline-192.png', '/assets/icons/redline-512.png', '/assets/vehicles/racecar.svg'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(x => x !== CACHE).map(x => caches.delete(x)))).then(() => self.clients.claim())); });
